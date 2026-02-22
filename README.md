@@ -1,5 +1,18 @@
 # Enterprise Zero Trust Security Control Plane for AWS & Kubernetes
 
+[![GitHub stars](https://img.shields.io/github/stars/santhana11/cloud-zero-trust-control-plane?style=for-the-badge)](https://github.com/santhana11/cloud-zero-trust-control-plane)
+[![GitHub forks](https://img.shields.io/github/forks/santhana11/cloud-zero-trust-control-plane?style=for-the-badge)](https://github.com/santhana11/cloud-zero-trust-control-plane)
+[![License](https://img.shields.io/github/license/santhana11/cloud-zero-trust-control-plane?style=for-the-badge)](LICENSE)
+[![Terraform](https://img.shields.io/badge/Terraform-1.5+-623CE4?style=for-the-badge&logo=terraform)](https://www.terraform.io)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-blue?style=for-the-badge&logo=kubernetes)](https://kubernetes.io)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/santhana11/cloud-zero-trust-control-plane/supply-chain-full.yml?style=for-the-badge&label=CI)](https://github.com/santhana11/cloud-zero-trust-control-plane/actions)
+
+## Why This Matters
+
+Enterprises face a single compromised identity or account that can impact many tenants and environments—blast radius is the core risk. Zero Trust cannot be a checkbox; it must be enforced in both pipeline and runtime so that non-compliant code and workloads never reach production. Identity boundaries matter more than network location: every access decision is based on verified identity and explicit policy, not on where the request comes from. This repository models production-grade security maturity—SCPs, permission boundaries, signed images, admission control, drift detection, and automated containment—implemented in code with clear ownership and auditability. It is not a demo; it is an operational control plane designed to withstand scrutiny from senior engineers and auditors.
+
+---
+
 ## Architecture Overview
 
 This diagram illustrates the layered Zero Trust control plane across AWS accounts, Kubernetes workloads, CI/CD, governance, and automated response.
@@ -10,13 +23,19 @@ This diagram illustrates the layered Zero Trust control plane across AWS account
        width="100%" />
 </p>
 
-[![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws)](https://aws.amazon.com)
-[![Terraform](https://img.shields.io/badge/Terraform-1.5+-623CE4?logo=terraform)](https://www.terraform.io)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-blue?logo=kubernetes)](https://kubernetes.io)
-[![Zero Trust](https://img.shields.io/badge/Architecture-Zero%20Trust-0E4C92)](https://www.nist.gov/zero-trust)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![OPA](https://img.shields.io/badge/Policy-OPA%20%7C%20Conftest-7B42BC)](https://www.openpolicyagent.org)
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=github-actions)](.github/workflows)
+---
+
+## Demo
+
+<p align="center">
+  <img src="architecture/demo.gif"
+       alt="Zero Trust Control Plane Demo"
+       width="100%" />
+</p>
+
+This demo shows pipeline enforcement, signed image admission, drift detection, and GuardDuty automated containment in action.
+
+---
 
 **Production-grade security control plane for AWS and Kubernetes.**  
 This document describes the implemented design, trust boundaries, controls, operational practices, and residual risks. It is written for senior DevSecOps engineers, security architects, cloud governance leads, and auditors who operate or evaluate the control plane in enterprise environments.
@@ -44,6 +63,44 @@ The control plane is built on four operational principles that govern how we enf
 - **Nightly Terraform drift detection** — `terraform plan -detailed-exitcode`; exit 2 triggers Slack and plan artifact; apply remains a separate, approved step.
 - **GuardDuty-driven automated containment** — EventBridge → Lambda quarantines EC2, snapshots volumes, notifies SNS; runbook-owned triage and restore/terminate.
 - **CIS-aligned evidence mapping** — Controls mapped to CIS AWS Foundations; evidence automated (Config, GuardDuty, drift, CI artifacts) with documented ownership and review cadence.
+
+---
+
+## Tech Stack
+
+### Cloud & Infrastructure
+
+- AWS Organizations
+- Service Control Policies (SCP)
+- AWS Config
+- GuardDuty
+- EventBridge
+- Lambda
+- SNS
+
+### Infrastructure as Code
+
+- Terraform ≥ 1.5
+- OPA / Conftest
+
+### Kubernetes Security
+
+- Amazon EKS
+- IRSA
+- Kyverno
+- Network Policies
+- Pod Security Standards
+- Falco
+
+### CI/CD & Supply Chain
+
+- GitHub Actions (OIDC)
+- Trivy
+- Checkov
+- Semgrep
+- Gitleaks
+- Syft (SBOM)
+- Cosign (Image Signing)
 
 ---
 
@@ -309,6 +366,12 @@ Residual risk acceptance is documented and owned (e.g. Platform Security, Risk);
 - **CI/CD and SBOM:** **`ci-cd/github-actions/README.md`**, **`ci-cd/sbom/README.md`**.  
 - **Detection and runbooks:** **`detection-response/guardduty-quarantine-lambda/README.md`**, **`detection-response/runbooks/`**.  
 - **Compliance:** **`compliance/README.md`**, **`compliance/cis-mapping.md`**, **`compliance/evidence-automation.md`**.
+
+---
+
+## License
+
+This project is licensed under the Apache License 2.0 – see the [LICENSE](LICENSE) file for details.
 
 ---
 
