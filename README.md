@@ -1,5 +1,15 @@
 # Enterprise Zero Trust Security Control Plane for AWS & Kubernetes
 
+## Architecture Overview
+
+This diagram illustrates the layered Zero Trust control plane across AWS accounts, Kubernetes workloads, CI/CD, governance, and automated response.
+
+<p align="center">
+  <img src="architecture/arch.png"
+       alt="Enterprise Zero Trust Security Control Plane Architecture"
+       width="100%" />
+</p>
+
 [![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws)](https://aws.amazon.com)
 [![Terraform](https://img.shields.io/badge/Terraform-1.5+-623CE4?logo=terraform)](https://www.terraform.io)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-blue?logo=kubernetes)](https://kubernetes.io)
