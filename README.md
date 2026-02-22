@@ -25,18 +25,6 @@ This diagram illustrates the layered Zero Trust control plane across AWS account
 
 ---
 
-## Demo
-
-<p align="center">
-  <img src="architecture/demo.gif"
-       alt="Zero Trust Control Plane Demo"
-       width="100%" />
-</p>
-
-This demo shows pipeline enforcement, signed image admission, drift detection, and GuardDuty automated containment in action.
-
----
-
 **Production-grade security control plane for AWS and Kubernetes.**  
 This document describes the implemented design, trust boundaries, controls, operational practices, and residual risks. It is written for senior DevSecOps engineers, security architects, cloud governance leads, and auditors who operate or evaluate the control plane in enterprise environments.
 
