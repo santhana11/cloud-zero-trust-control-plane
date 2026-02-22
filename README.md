@@ -23,8 +23,6 @@ This diagram illustrates the layered Zero Trust control plane across AWS account
        width="100%" />
 </p>
 
----
-
 **Production-grade security control plane for AWS and Kubernetes.**  
 This document describes the implemented design, trust boundaries, controls, operational practices, and residual risks. It is written for senior DevSecOps engineers, security architects, cloud governance leads, and auditors who operate or evaluate the control plane in enterprise environments.
 
