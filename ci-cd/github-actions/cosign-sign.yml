@@ -1,0 +1,44 @@
+# ------------------------------------------------------------------------------
+# Cosign — Image Signing
+# ------------------------------------------------------------------------------
+# Cosign signs container images so that only trusted (signed) images can be
+# deployed. Why: Prevents supply-chain attacks (e.g. substituted malicious
+# image) and supports policy (admission controller allows only signed images).
+# We sign with a key stored in GitHub Secrets (or use keyless with Fulcio for
+# OIDC-based signing). After push, the signature is stored alongside the image
+# (e.g. ECR supports OCI artifacts). Admission (Kyverno/Gatekeeper) verifies
+# the signature before allowing the pod.
+# ------------------------------------------------------------------------------
+name: Cosign Sign
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Full image reference (e.g. 123456789012.dkr.ecr.region.amazonaws.com/app:tag)'
+        required: true
+  # Or trigger after your build workflow:
+  # workflow_run:
+  #   workflows: ["Build and Push"]
+  #   types: [completed]
+  #   branches: [main]
+jobs:
+  sign:
+    name: Cosign
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v2.2.0
+
+      - name: Sign image (key-based)
+        env:
+          IMAGE: ${{ github.event.inputs.image || format('{0}:{1}', github.repository, github.sha) }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          cosign sign --key cosign.key --yes $IMAGE
+          rm -f cosign.key
+        # Keyless: cosign sign --yes $IMAGE (uses OIDC/Fulcio when COSIGN_EXPERIMENTAL=1)
+        # Optional: cosign attach sbom and cosign attest for provenance

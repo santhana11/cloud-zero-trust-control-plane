@@ -1,0 +1,59 @@
+# ------------------------------------------------------------------------------
+# Kyverno — Enforce Signed Images (Cosign)
+# ------------------------------------------------------------------------------
+# Only allow container images that are signed with Cosign. Unsigned or
+# wrongly signed images are rejected at admission. Use with CI: build → sign
+# (cosign) → push; this policy verifies the signature when the pod is created.
+#
+# Setup: Create a Secret with the Cosign public key (PEM). Reference it in
+# attestors.staticKeyRef. For keyless (Fulcio), use attestors.keyless instead.
+#
+# validationFailureAction: Enforce = block non-compliant; Audit = log only.
+# Start with Audit, then switch to Enforce once signing is in place.
+# ------------------------------------------------------------------------------
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-signed-images
+  annotations:
+    policies.kyverno.io/title: Enforce Cosign-signed images
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: Only allow images signed with Cosign (supply chain security).
+spec:
+  validationFailureAction: Audit
+  background: false
+  rules:
+    - name: verify-image-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                # Restrict to workload namespaces; exclude system namespaces
+                - app-prod
+                - app-dev
+      verifyImages:
+        - imageReferences:
+            - "*"
+          attestors:
+            - count: 1
+              entries:
+                - keys:
+                    publicKeys: |
+                      # Replace with your Cosign public key PEM, or use secretRef:
+                      # secretRef:
+                      #   name: cosign-pub-key
+                      #   namespace: kyverno
+                      -----BEGIN PUBLIC KEY-----
+                      REPLACE_WITH_COSIGN_PUBLIC_KEY_PEM
+                      -----END PUBLIC KEY-----
+        # Optional: use secret instead of inline key (recommended for prod)
+        # - imageReferences: ["*"]
+        #   attestors:
+        #     - count: 1
+        #       entries:
+        #         - keys:
+        #             secretRef:
+        #               name: cosign-pub-key
+        #               namespace: kyverno

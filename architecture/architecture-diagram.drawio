@@ -1,0 +1,189 @@
+<mxfile host="app.diagrams.net" modified="2025-01-01T00:00:00.000Z">
+  <diagram name="Zero Trust Architecture" id="zero-trust-arch">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Cloud Zero Trust Security Control Plane" style="text;html=1;fontStyle=1;fontSize=16;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="24" y="12" width="420" height="28" as="geometry"/>
+        </mxCell>
+
+        <!-- Zone 1: Developer &amp; CI Layer (Top) - Container -->
+        <mxCell id="zone1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;dashed=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="24" y="52" width="752" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="zone1-label" value="Developer &amp; CI Layer" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=middle;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="32" y="56" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ctrl-plane-label1" value="Control Plane" style="text;html=1;fontSize=9;fontColor=#666666;align=right;" vertex="1" parent="1">
+          <mxGeometry x="620" y="58" width="80" height="16" as="geometry"/>
+        </mxCell>
+
+        <!-- Zone 1 contents: Developer, GitHub, GitHub Actions, ECR -->
+        <mxCell id="dev" value="Developer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="48" y="88" width="56" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="github" value="GitHub" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="160" y="92" width="72" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="gh-actions" value="GitHub&#xa;Actions" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="268" y="92" width="80" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="ecr" value="Amazon ECR" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fcompute/container-registry.svg;" vertex="1" parent="1">
+          <mxGeometry x="392" y="92" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Zone 2: Workload AWS Account (Middle Center) - Container -->
+        <mxCell id="zone2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="24" y="196" width="752" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="zone2-label" value="Workload AWS Account" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=middle;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="32" y="200" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="workload-plane-label" value="Workload Plane" style="text;html=1;fontSize=9;fontColor=#666666;align=right;" vertex="1" parent="1">
+          <mxGeometry x="620" y="202" width="100" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="irsa-label" value="IRSA (workload identity)" style="text;html=1;fontSize=9;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="32" y="218" width="160" height="16" as="geometry"/>
+        </mxCell>
+
+        <!-- ArgoCD (between GitHub and EKS conceptually - in workload zone) -->
+        <mxCell id="argocd" value="ArgoCD" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="48" y="260" width="88" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="eks" value="Amazon EKS" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fcompute/elastic-kubernetes-service.svg;" vertex="1" parent="1">
+          <mxGeometry x="180" y="256" width="56" height="56" as="geometry"/>
+        </mxCell>
+        <!-- Kyverno -->
+        <mxCell id="kyverno" value="Kyverno" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="288" y="260" width="88" height="44" as="geometry"/>
+        </mxCell>
+        <!-- NetworkPolicy -->
+        <mxCell id="netpol" value="Network&#xa;Policy" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="416" y="260" width="88" height="44" as="geometry"/>
+        </mxCell>
+        <!-- Falco -->
+        <mxCell id="falco" value="Falco" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="544" y="260" width="88" height="44" as="geometry"/>
+        </mxCell>
+
+        <!-- Zone 4: Management Account (Left Side) - Container -->
+        <mxCell id="zone4" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="24" y="436" width="240" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="zone4-label" value="Management Account" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=middle;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="32" y="440" width="220" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="org" value="AWS Organizations" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fmanagement-governance/organizations.svg;" vertex="1" parent="1">
+          <mxGeometry x="88" y="480" width="48" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="scp" value="Service Control&#xa;Policies (SCP)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="56" y="588" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="scp-gov-note" value="(governs accounts)" style="text;html=1;fontSize=9;fontColor=#666666;align=center;" vertex="1" parent="1">
+          <mxGeometry x="48" y="636" width="136" height="16" as="geometry"/>
+        </mxCell>
+
+        <!-- Zone 3: Security AWS Account (Bottom Center) - Container -->
+        <mxCell id="zone3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="288" y="436" width="488" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="zone3-label" value="Security AWS Account" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=middle;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="296" y="440" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="security-plane-label" value="Security Plane" style="text;html=1;fontSize=9;fontColor=#666666;align=right;" vertex="1" parent="1">
+          <mxGeometry x="660" y="442" width="100" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="securityhub" value="Security Hub" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fsecurity-identity-compliance/security-hub.svg;" vertex="1" parent="1">
+          <mxGeometry x="320" y="480" width="48" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="guardduty" value="GuardDuty" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fsecurity-identity-compliance/guardduty.svg;" vertex="1" parent="1">
+          <mxGeometry x="420" y="480" width="48" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="config" value="AWS Config" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fmanagement-governance/config.svg;" vertex="1" parent="1">
+          <mxGeometry x="520" y="480" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Zone Detection &amp; Response (Right Side Vertical) -->
+        <mxCell id="zone-dr" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="808" y="196" width="200" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="zone-dr-label" value="Event-driven Response" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=middle;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="816" y="200" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="eventbridge" value="EventBridge" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fapplication-integration/eventbridge.svg;" vertex="1" parent="1">
+          <mxGeometry x="888" y="248" width="48" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="lambda" value="Lambda" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fcompute/lambda.svg;" vertex="1" parent="1">
+          <mxGeometry x="888" y="388" width="48" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="sns" value="SNS" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://icons.terrastruct.com/aws%2F_group%2Fapplication-integration/sns.svg;" vertex="1" parent="1">
+          <mxGeometry x="888" y="528" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Trust boundary: CI -->
+        <mxCell id="trust-ci" value="" style="shape=line;strokeWidth=1;fillColor=none;strokeColor=#d6b656;dashed=1;html=1;direction=east;" vertex="1" parent="1">
+          <mxGeometry x="24" y="174" width="752" height="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="trust-ci-lbl" value="CI boundary" style="text;html=1;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="340" y="178" width="60" height="14" as="geometry"/>
+        </mxCell>
+        <!-- Trust boundary: Account (vertical between Management and Security) -->
+        <mxCell id="trust-acc" value="" style="shape=line;strokeWidth=2;fillColor=none;strokeColor=#999999;dashed=1;html=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="270" y="436" width="1" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="trust-acc-lbl" value="Account boundary" style="text;html=1;fontSize=9;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="276" y="556" width="100" height="14" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows: Zone 1 flow Developer → GitHub → GitHub Actions → ECR -->
+        <mxCell id="a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;" edge="1" parent="1" source="dev" target="github">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;" edge="1" parent="1" source="github" target="gh-actions">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;" edge="1" parent="1" source="gh-actions" target="ecr">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows: ECR → ArgoCD → EKS -->
+        <mxCell id="a4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1;" edge="1" parent="1" source="ecr" target="argocd">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;" edge="1" parent="1" source="argocd" target="eks">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Arrows: Inside EKS Kyverno → NetworkPolicy → Falco -->
+        <mxCell id="a6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;" edge="1" parent="1" source="kyverno" target="netpol">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;" edge="1" parent="1" source="netpol" target="falco">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- SCP applies downward (governance, not data flow) -->
+        <mxCell id="a8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=1;dashed=1;strokeColor=#b85450;dashPattern=8 8;" edge="1" parent="1" source="scp" target="zone2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;dashed=1;strokeColor=#b85450;dashPattern=8 8;" edge="1" parent="1" source="scp" target="zone3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- GuardDuty → EventBridge (dashed event trigger) -->
+        <mxCell id="a10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1;dashed=1;strokeColor=#d79b00;" edge="1" parent="1" source="guardduty" target="eventbridge">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- EventBridge → Lambda → SNS -->
+        <mxCell id="a11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1;" edge="1" parent="1" source="eventbridge" target="lambda">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1;" edge="1" parent="1" source="lambda" target="sns">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

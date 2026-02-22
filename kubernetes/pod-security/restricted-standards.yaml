@@ -1,0 +1,64 @@
+# ------------------------------------------------------------------------------
+# Pod Security Standards — Restricted (Zero Trust)
+# ------------------------------------------------------------------------------
+# Kubernetes Pod Security Standards (PSS) define "restricted" as: no privileged
+# pods, runAsNonRoot, drop ALL capabilities, no hostPath, readOnlyRootFilesystem
+# where possible, and seccomp. This reduces container escape and privilege
+# escalation risk.
+#
+# Option A: Use built-in Pod Security Admission (Kubernetes 1.23+). Label the
+# namespace so the API server enforces "restricted" for that namespace.
+# Option B: Use Kyverno/Gatekeeper to enforce equivalent rules (already in
+# kubernetes/kyverno). This file shows Option A.
+# ------------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-prod
+  labels:
+    # Enforce restricted profile; warn on audit (so we see what would be blocked)
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-dev
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+# ------------------------------------------------------------------------------
+# Example Pod (reference only — not applied) showing restricted-compliant spec
+# ------------------------------------------------------------------------------
+# Use this as a template for application deployments. Restricted requires:
+# - securityContext.runAsNonRoot: true, runAsUser set
+# - securityContext.seccompProfile.type: RuntimeDefault
+# - container securityContext: allowPrivilegeEscalation: false, capabilities.drop: ["ALL"]
+# - readOnlyRootFilesystem: true if app supports it
+# ------------------------------------------------------------------------------
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: example-app
+#   namespace: app-prod
+# spec:
+#   template:
+#     spec:
+#       securityContext:
+#         runAsNonRoot: true
+#         runAsUser: 1000
+#         seccompProfile:
+#           type: RuntimeDefault
+#       containers:
+#         - name: app
+#           image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/app:sha-abc
+#           securityContext:
+#             allowPrivilegeEscalation: false
+#             readOnlyRootFilesystem: false
+#             capabilities:
+#               drop: ["ALL"]
+#             runAsNonRoot: true
+#             runAsUser: 1000

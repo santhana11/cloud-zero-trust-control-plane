@@ -1,0 +1,105 @@
+# ------------------------------------------------------------------------------
+# Terraform Drift Detection — Nightly (Phase 7)
+# ------------------------------------------------------------------------------
+# Runs on a schedule (nightly) and on workflow_dispatch. Uses
+#   terraform plan -detailed-exitcode
+# to detect drift (state vs live). Exit code 2 = changes present = drift.
+# On drift: upload plan artifact, post to Slack webhook, fail the job.
+#
+# Exit codes (terraform plan -detailed-exitcode):
+#   0 = no changes (success)
+#   1 = error (e.g. provider or backend failure)
+#   2 = changes present (drift detected)
+# ------------------------------------------------------------------------------
+name: Terraform Drift (Nightly)
+on:
+  schedule:
+    # Run nightly at 00:00 UTC (adjust to your preferred time)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+jobs:
+  drift:
+    name: Drift check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      TF_DIR: ${{ vars.TF_DRIFT_DIR || 'terraform/org-guardrails' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DRIFT }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+        # If not using OIDC: use aws-access-key-id / aws-secret-access-key from secrets
+
+      - name: Terraform Init
+        run: |
+          if [ -n "${{ secrets.TF_BACKEND_CONFIG }}" ]; then
+            echo "${{ secrets.TF_BACKEND_CONFIG }}" > backend.conf
+            terraform init -input=false -backend-config=backend.conf
+          else
+            terraform init -input=false
+          fi
+        working-directory: ${{ env.TF_DIR }}
+
+      - name: Terraform Plan (detailed exit code)
+        id: plan
+        run: |
+          set +e
+          terraform plan -no-color -input=false -detailed-exitcode -out=tfplan
+          EC=$?
+          echo "exitcode=$EC" >> $GITHUB_OUTPUT
+          exit 0
+        working-directory: ${{ env.TF_DIR }}
+
+      - name: Upload plan artifact (on drift)
+        if: steps.plan.outputs.exitcode == '2'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-plan-${{ github.run_id }}
+          path: ${{ env.TF_DIR }}/tfplan
+          retention-days: 14
+
+      - name: Notify Slack on drift
+        if: steps.plan.outputs.exitcode == '2' && secrets.SLACK_WEBHOOK_URL_DRIFT != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DRIFT }}
+        run: |
+          payload=$(cat <<EOF
+          {
+            "text": "⚠️ *Terraform drift detected*",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Terraform drift detected* (nightly check)\n• Repository: ${{ github.repository }}\n• Workflow: ${{ github.workflow }}\n• Run: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|#${{ github.run_id }}>\n• Directory: ${{ env.TF_DIR }}\n\nReview the plan artifact and fix drift or apply approved changes."
+                }
+              }
+            ]
+          }
+          EOF
+          )
+          curl -sSf -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+
+      - name: Fail on drift
+        if: steps.plan.outputs.exitcode == '2'
+        run: |
+          echo "Drift detected (exit code 2). See plan artifact and Slack."
+          exit 2
+
+      - name: Fail on plan error
+        if: steps.plan.outputs.exitcode == '1'
+        run: |
+          echo "Terraform plan failed with error (exit code 1)."
+          exit 1

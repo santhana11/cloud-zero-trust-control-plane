@@ -1,0 +1,60 @@
+# ------------------------------------------------------------------------------
+# SBOM — Syft (Software Bill of Materials) — Phase 5
+# ------------------------------------------------------------------------------
+# 1. SBOM generation step: Syft scans the container image and produces a
+#    CycloneDX (and optionally SPDX) SBOM listing every package in the image.
+# 2. Artifact upload step: Upload SBOM(s) as pipeline artifacts for retention,
+#    release attachment, or downstream CVE correlation and audit.
+#
+# Why: Supply-chain transparency, vulnerability correlation (e.g. new CVE →
+#      which images are affected?), license compliance, and audit evidence.
+# See: ci-cd/sbom/README.md (CycloneDX format, supply chain transparency).
+# ------------------------------------------------------------------------------
+name: SBOM (Syft)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+env:
+  IMAGE_REF: ${{ github.repository }}:${{ github.sha }}
+jobs:
+  sbom:
+    name: Syft SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t ${{ env.IMAGE_REF }} -f Dockerfile . 2>/dev/null || true
+
+      # ---------- SBOM generation step ----------
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      - name: Generate SBOM (CycloneDX)
+        id: generate-sbom
+        run: syft ${{ env.IMAGE_REF }} -o cyclonedx-json=sbom.cyclonedx.json
+        # Syft enumerates OS packages + language deps; output is CycloneDX JSON (see ci-cd/sbom/README.md)
+      - name: Generate SBOM (SPDX, optional)
+        run: syft ${{ env.IMAGE_REF }} -o spdx-json=sbom.spdx.json 2>/dev/null || true
+        continue-on-error: true
+
+      # ---------- Artifact upload step ----------
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx-${{ github.sha }}
+          path: sbom.cyclonedx.json
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload SPDX artifact (if generated)
+        uses: actions/upload-artifact@v4
+        if: hashFiles('sbom.spdx.json') != ''
+        with:
+          name: sbom-spdx-${{ github.sha }}
+          path: sbom.spdx.json
+          retention-days: 90

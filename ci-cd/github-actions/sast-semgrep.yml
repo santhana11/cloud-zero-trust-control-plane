@@ -1,0 +1,40 @@
+# ------------------------------------------------------------------------------
+# SAST — Semgrep
+# ------------------------------------------------------------------------------
+# Static Application Security Testing finds bugs and security issues in code
+# before runtime (e.g. SQLi, XSS, hardcoded secrets, unsafe deserialization).
+# Semgrep runs pattern-based and custom rules against the codebase. Why: Shift-left
+# reduces cost of fixing issues and prevents vulnerable code from reaching production.
+# Results are uploaded as SARIF so they appear in GitHub Security tab. We do not
+# fail the job on every finding (noise); optionally fail on high/critical or
+# after a baseline is established.
+# ------------------------------------------------------------------------------
+name: SAST (Semgrep)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/owasp-top-ten
+          generateSarif: true
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+        continue-on-error: true
+# Note: To fail on high/critical Semgrep findings, add: options: --severity ERROR

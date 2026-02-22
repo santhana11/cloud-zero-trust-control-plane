@@ -1,0 +1,51 @@
+# ------------------------------------------------------------------------------
+# Conftest — OPA/Rego Terraform policy
+# ------------------------------------------------------------------------------
+# Runs custom Rego policies (deny public S3, wildcard IAM, require encryption,
+# remote state) against Terraform plan. Use alongside Checkov for org-specific
+# guardrails. Fails if any policy denies.
+# ------------------------------------------------------------------------------
+name: Conftest (Terraform)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'policy/opa/**'
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'policy/opa/**'
+jobs:
+  conftest:
+    name: Conftest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5"
+          terraform_wrapper: false
+
+      - name: Conftest install
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/open-policy-agent/conftest/main/install.sh | sh -s -- -b . v0.47.0
+          ./conftest --version
+
+      - name: Terraform plan (one module)
+        id: plan
+        working-directory: terraform/org-guardrails
+        run: |
+          terraform init -backend=false -input=false
+          terraform plan -out=tfplan -input=false
+          terraform show -json tfplan > plan.json
+          cp plan.json "${{ github.workspace }}/plan.json"
+
+      - name: Conftest test plan
+        run: ./conftest test plan.json -p policy/opa/terraform/
+
+      - name: Conftest test .tf (remote state)
+        run: ./conftest test terraform/org-guardrails/*.tf -p policy/opa/terraform/ --parser terraform

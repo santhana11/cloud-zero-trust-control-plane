@@ -1,0 +1,50 @@
+# ------------------------------------------------------------------------------
+# Kyverno — Default Deny NetworkPolicy (Generate)
+# ------------------------------------------------------------------------------
+# Ensures every namespace that runs workload has a default-deny NetworkPolicy
+# (no ingress/egress unless explicitly allowed). Kyverno can generate it
+# when the namespace is created or when the policy is applied (generate rule).
+#
+# Strategy: Generate a default-deny NetworkPolicy for matching namespaces
+# so we don't rely on manual YAML in every namespace. Namespaces are selected
+# by label (e.g. zero-trust.io/network-deny: "true").
+#
+# validationFailureAction: N/A for generate; background applies the generate rule.
+# ------------------------------------------------------------------------------
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: default-deny-network-policy
+  annotations:
+    policies.kyverno.io/title: Generate default-deny NetworkPolicy
+    policies.kyverno.io/severity: medium
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: generate-default-deny
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  # Only namespaces with this label get the generated policy
+                  zero-trust.io/default-deny: "true"
+      generate:
+        kind: NetworkPolicy
+        apiVersion: networking.k8s.io/v1
+        name: kyverno-default-deny-all
+        namespace: "{{ request.object.metadata.name }}"
+        synchronize: true
+        data:
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
+          metadata:
+            labels:
+              zero-trust.io/layer: zero-trust
+              app.kubernetes.io/managed-by: kyverno

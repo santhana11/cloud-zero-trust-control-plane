@@ -1,0 +1,100 @@
+# ------------------------------------------------------------------------------
+# Supply Chain Security — Full Pipeline
+# ------------------------------------------------------------------------------
+# Single workflow that runs all supply-chain stages in order. Use this as the
+# main CI gate for application repos: only commits that pass this workflow
+# should be merged. We FAIL on critical CVEs (Trivy exit-code 1) and on
+# secret detection (Gitleaks). Other stages (SAST, Checkov, SBOM, sign) run
+# and may fail or warn per org policy.
+#
+# Stages:
+#   1. Secret scan (Gitleaks) — fail if secrets found
+#   2. SAST (Semgrep) — report; optional fail on severity
+#   3. Checkov (Terraform) — fail on high/critical misconfig
+#   4. Build image
+#   5. Trivy container scan — FAIL ON CRITICAL/HIGH CVEs
+#   6. SBOM (Syft) — artifact
+#   7. Cosign sign — after push to registry
+# ------------------------------------------------------------------------------
+name: Supply Chain (Full)
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+env:
+  IMAGE_REF: ${{ github.repository }}:${{ github.sha }}
+jobs:
+  secret-scan:
+    name: 1. Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast:
+    name: 2. SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/security-audit
+          generateSarif: true
+    continue-on-error: true
+
+  checkov:
+    name: 3. Checkov (Terraform)
+    runs-on: ubuntu-latest
+    if: hashFiles('terraform/**/*.tf') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/
+          framework: terraform
+          soft_fail: false
+
+  build-and-scan:
+    name: 4. Build + 5. Trivy (fail on critical)
+    runs-on: ubuntu-latest
+    needs: [secret-scan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: docker build -t ${{ env.IMAGE_REF }} -f Dockerfile . 2>/dev/null || true
+      - name: Trivy — fail on CRITICAL/HIGH
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_REF }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 1
+        # exit-code 1 = job fails when any CRITICAL or HIGH CVE found
+
+  sbom:
+    name: 6. SBOM (Syft)
+    runs-on: ubuntu-latest
+    needs: [build-and-scan]
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t ${{ env.IMAGE_REF }} -f Dockerfile . 2>/dev/null || true
+      - name: Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.IMAGE_REF }}
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.cyclonedx.json
+
+  # 7. Cosign: run after image is pushed to registry (separate workflow or step in deploy pipeline)
+  # See cosign-sign.yml for manual or workflow_run trigger.

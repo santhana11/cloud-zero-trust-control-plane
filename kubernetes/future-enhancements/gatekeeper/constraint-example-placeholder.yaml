@@ -1,0 +1,17 @@
+# Placeholder: Add Gatekeeper ConstraintTemplate and Constraint for your rules
+# Example: K8sAllowedRepos (from gatekeeper-library)
+# apiVersion: templates.gatekeeper.sh/v1
+# kind: ConstraintTemplate
+# ...
+# apiVersion: constraints.gatekeeper.sh/v1beta1
+# kind: K8sAllowedRepos
+# metadata:
+#   name: allowed-repos
+# spec:
+#   match:
+#     kinds:
+#       - apiGroups: [""]
+#         kinds: ["Pod"]
+#   parameters:
+#     repos:
+#       - "123456789012.dkr.ecr.us-east-1.amazonaws.com/app-*"

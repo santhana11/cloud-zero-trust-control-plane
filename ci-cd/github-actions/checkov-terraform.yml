@@ -1,0 +1,39 @@
+# ------------------------------------------------------------------------------
+# Checkov — Terraform (IaC) Scan
+# ------------------------------------------------------------------------------
+# Checkov scans Terraform (and other IaC) for misconfigurations and policy
+# violations (e.g. unencrypted S3, open security groups, missing logging).
+# Why: Infrastructure drift and bad defaults create security and compliance
+# gaps; catching them in CI prevents vulnerable infra from being applied.
+# We run on PR and optionally fail on high/critical. Output can be SARIF
+# for GitHub Security tab.
+# ------------------------------------------------------------------------------
+name: Checkov (Terraform)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - '**.tf'
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - '**.tf'
+jobs:
+  checkov:
+    name: Checkov
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/
+          framework: terraform
+          output_format: cli
+          soft_fail: false
+          # Fail on medium and above (customize: use soft_fail true and check output)
+          download_external_modules: true

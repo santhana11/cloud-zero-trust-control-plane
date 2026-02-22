@@ -1,0 +1,21 @@
+# Example: Pod securityContext for restricted profile (embed in app deployments)
+# Cloud Zero Trust Platform — Pod Security Context Example
+# Use as reference; adjust readOnlyRootFilesystem if app needs writable root
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000

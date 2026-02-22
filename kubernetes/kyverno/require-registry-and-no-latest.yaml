@@ -1,0 +1,29 @@
+# Block :latest tag; restrict to approved registry (customize registry pattern)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registry
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: disallow-latest-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Image tag 'latest' is not allowed. Use digest or explicit tag."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
+    # Add rule to require image from your ECR (example pattern):
+    # - name: require-approved-registry
+    #   match: ...
+    #   validate:
+    #     pattern:
+    #       spec:
+    #         containers:
+    #           - image: "123456789012.dkr.ecr.*.amazonaws.com/*:*"

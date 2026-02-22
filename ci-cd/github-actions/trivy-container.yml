@@ -1,0 +1,46 @@
+# ------------------------------------------------------------------------------
+# Trivy — Container Image Scan
+# ------------------------------------------------------------------------------
+# Trivy scans container images for CVEs (OS and application packages), misconfigurations,
+# and secrets. Why: Only images that pass vulnerability policy should be deployed.
+# We fail the job on CRITICAL and optionally HIGH so that critical CVEs never
+# reach production. Severity is configurable (exit_code 1 = vulns found).
+# ------------------------------------------------------------------------------
+name: Trivy Container Scan
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+env:
+  IMAGE_REF: ${{ github.repository }}:${{ github.sha }}
+jobs:
+  trivy:
+    name: Trivy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Replace with your actual image build step; then set IMAGE_REF to that image.
+      - name: Build image (example — set IMAGE_REF or use docker/build-push-action output)
+        run: |
+          docker build -t ${{ env.IMAGE_REF }} -f Dockerfile . 2>/dev/null || true
+          # If no Dockerfile in repo, use: image-ref: your-ecr-repo:tag from prior job
+
+      - name: Run Trivy (container)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_REF }}
+          format: sarif
+          output: trivy-container.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 1
+        # exit-code 1 = fail job when CRITICAL/HIGH found (fail on critical CVEs)
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-container.sarif
+        continue-on-error: true

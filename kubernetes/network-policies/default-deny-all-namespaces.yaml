@@ -1,0 +1,43 @@
+# ------------------------------------------------------------------------------
+# Default Deny NetworkPolicy (Zero Trust — Network Layer)
+# ------------------------------------------------------------------------------
+# In zero trust we do not rely on network location for trust. This policy
+# implements "default deny": no ingress and no egress unless explicitly allowed
+# by another NetworkPolicy. Apply to every namespace that runs workload.
+#
+# How it works:
+#   - podSelector: {} matches all pods in the namespace.
+#   - policyTypes: Ingress, Egress with no rules = deny all.
+#   - Follow-up policies (allow-dns-egress, allow-from-ingress) add specific
+#     allow rules. Kubernetes combines them (additive for allows).
+#
+# Apply: kubectl apply -f default-deny-all-namespaces.yaml
+# Then apply allow policies per namespace.
+# ------------------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: app-prod
+  labels:
+    zero-trust.io/layer: zero-trust
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Repeat for other namespaces (app-dev, app-staging, etc.) or use a single
+# policy in a namespace that you want to lock down first.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: app-dev
+  labels:
+    zero-trust.io/layer: zero-trust
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

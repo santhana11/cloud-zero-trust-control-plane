@@ -1,0 +1,70 @@
+# ------------------------------------------------------------------------------
+# Allow-Only Specific Namespace Communication (Zero Trust)
+# ------------------------------------------------------------------------------
+# We allow traffic only from/to explicitly permitted namespaces. This limits
+# lateral movement: e.g. only the ingress controller namespace can reach
+# app-prod on port 80/443; only app-prod can talk to a shared logging or
+# queue namespace. No blanket "allow same namespace" unless intended.
+#
+# Example 1: Allow ingress from ingress-controller namespace to app-prod
+# (so external traffic can reach pods via Ingress).
+# Example 2: Allow app-prod to talk only to namespace "shared-data" on 5432 (DB).
+# ------------------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-ingress-controller
+  namespace: app-prod
+  labels:
+    zero-trust.io/layer: zero-trust
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+---
+# Allow app-prod to egress only to kube-system (DNS) and to shared-data namespace (e.g. DB).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-dns-and-shared-namespace
+  namespace: app-prod
+  labels:
+    zero-trust.io/layer: zero-trust
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    # DNS (CoreDNS in kube-system)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow egress to shared-data namespace only on 5432 (example: Postgres)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: shared-data
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow egress to AWS APIs (for IRSA) — cluster internal or VPC endpoint
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+      ports:
+        - protocol: TCP
+          port: 443

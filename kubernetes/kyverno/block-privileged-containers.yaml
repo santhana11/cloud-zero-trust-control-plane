@@ -1,0 +1,53 @@
+# ------------------------------------------------------------------------------
+# Kyverno — Block Privileged Containers
+# ------------------------------------------------------------------------------
+# Reject pods that run privileged containers or allow privilege escalation.
+# Reduces container escape and host compromise risk.
+#
+# validationFailureAction: Enforce = block; Audit = report only.
+# ------------------------------------------------------------------------------
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: block-privileged-containers
+  annotations:
+    policies.kyverno.io/title: Block privileged containers
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Privileged containers are not allowed. Omit securityContext.privileged or set to false."
+        deny:
+          conditions:
+            any:
+              - key: "{{ element.securityContext.privileged }}"
+                operator: Equals
+                value: true
+        foreach:
+          - list: "request.object.spec.containers"
+            variable: element
+    - name: deny-allow-privilege-escalation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "allowPrivilegeEscalation must be false or omitted (defaults to false when runAsNonRoot)."
+        deny:
+          conditions:
+            any:
+              - key: "{{ element.securityContext.allowPrivilegeEscalation }}"
+                operator: Equals
+                value: true
+        foreach:
+          - list: "request.object.spec.containers"
+            variable: element
